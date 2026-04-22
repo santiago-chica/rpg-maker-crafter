@@ -1,44 +1,264 @@
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-#app{display:flex;gap:0;height:660px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
-#left{width:55%;display:flex;flex-direction:column;border-right:0.5px solid var(--color-border-tertiary)}
-#toolbar{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;gap:6px;align-items:center;background:var(--color-background-secondary)}
-#toolbar span{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-right:4px}
-#recipe-list{flex:1;overflow-y:auto;padding:8px}
-#recipe-detail{border-top:0.5px solid var(--color-border-tertiary);padding:12px;background:var(--color-background-secondary);overflow-y:auto;max-height:320px}
-#right{width:45%;display:flex;flex-direction:column}
-#output-header{padding:10px 12px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);display:flex;align-items:center;justify-content:space-between}
-#output-header span{font-size:13px;font-weight:500;color:var(--color-text-primary)}
-#output{flex:1;font-family:var(--font-mono);font-size:11px;padding:12px;resize:none;border:none;outline:none;background:var(--color-background-primary);color:var(--color-text-primary);line-height:1.6}
-.recipe-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;user-select:none;transition:border-color 0.15s,opacity 0.15s}
-.recipe-card:hover{border-color:var(--color-border-secondary)}
-.recipe-card.selected{border-color:#7F77DD;background:#EEEDFE}
-.recipe-card.drag-over-top{border-top:2px solid #7F77DD}
-.recipe-card.drag-over-bottom{border-bottom:2px solid #7F77DD}
-.drag-handle{color:var(--color-text-tertiary);font-size:16px;cursor:grab;padding:0 2px;line-height:1}
-.recipe-idx{font-size:11px;color:var(--color-text-tertiary);min-width:28px;font-weight:500}
-.recipe-name{flex:1;font-size:13px;color:var(--color-text-primary);font-weight:500}
-.recipe-product{font-size:11px;color:var(--color-text-secondary)}
-.del-btn{font-size:11px;padding:2px 7px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
-.del-btn:hover{background:var(--color-background-danger);color:var(--color-text-danger)}
-.field-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px}
-.field-row label{font-size:12px;color:var(--color-text-secondary);min-width:110px;padding-top:6px}
-.field-col{display:flex;flex-direction:column;gap:2px;flex:1}
-.field-col input,.field-col select{font-size:12px;padding:4px 8px;height:28px;width:100%}
-.hint{font-size:10px;color:var(--color-text-tertiary);line-height:1.4}
-.section-label{font-size:11px;font-weight:500;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;margin-top:10px}
-.ing-block{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 10px;margin-bottom:8px}
-.ing-header{font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-.ing-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.ing-field{display:flex;flex-direction:column;gap:2px}
-.ing-field label{font-size:10px;color:var(--color-text-tertiary)}
-.ing-field input,.ing-field select{font-size:12px;padding:3px 6px;height:28px;width:100%}
-.rm-btn{font-size:11px;padding:1px 6px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-tertiary);cursor:pointer}
-.rm-btn:hover{background:var(--color-background-danger);color:var(--color-text-danger)}
-#detail-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px}
-.empty-state{text-align:center;padding:40px 20px;color:var(--color-text-tertiary);font-size:13px}
+
+:root{
+  --color-bg: #0f1115;
+  --color-panel: #161a22;
+  --color-panel-2: #1c212c;
+  --color-border: #2a3140;
+  --color-border-soft: #232938;
+
+  --color-text: #e6e9ef;
+  --color-text-secondary: #aab2c0;
+  --color-text-tertiary: #7c8596;
+
+  --color-accent: #6ea8fe;
+  --color-accent-hover: #8bb8ff;
+  --color-danger: #ff6b6b;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 6px 20px rgba(0,0,0,0.35);
+  --transition: 0.15s ease;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Layout */
+#app{
+  display:flex;
+  height:100vh;
+  gap:10px;
+  padding:10px;
+}
+
+#left{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+#right{
+  width:40%;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+/* Panels */
+#toolbar, #output-header{
+  background: var(--color-panel);
+  border:1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding:8px 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:13px;
+  box-shadow: var(--shadow);
+}
+
+#recipe-list, #recipe-detail, #output{
+  background: var(--color-panel);
+  border:1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding:8px;
+  box-shadow: var(--shadow);
+}
+
+/* Recipe list */
+#recipe-list{
+  flex:1;
+  overflow:auto;
+}
+
+.recipe-card{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  border-radius: var(--radius-sm);
+  cursor:pointer;
+  transition: var(--transition);
+  border:1px solid transparent;
+}
+
+.recipe-card:hover{
+  background: var(--color-panel-2);
+}
+
+.recipe-card.selected{
+  border:1px solid var(--color-accent);
+  background: rgba(110,168,254,0.1);
+}
+
+.recipe-idx{
+  color: var(--color-text-tertiary);
+  font-size:11px;
+}
+
+.recipe-name{
+  flex:1;
+  font-size:13px;
+}
+
+.recipe-product{
+  font-size:11px;
+  color: var(--color-text-secondary);
+}
+
+.drag-handle{
+  cursor:grab;
+  color: var(--color-text-tertiary);
+}
+
+.del-btn{
+  background:none;
+  border:none;
+  color: var(--color-danger);
+  cursor:pointer;
+}
+
+/* Drag indicators */
+.drag-over-top{border-top:2px solid var(--color-accent)}
+.drag-over-bottom{border-bottom:2px solid var(--color-accent)}
+
+/* Detail panel */
+#recipe-detail{
+  max-height:45%;
+  overflow:auto;
+}
+
+#detail-title{
+  font-size:13px;
+  margin-bottom:8px;
+  color: var(--color-accent);
+}
+
+/* Forms */
+.field-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.field-row label{
+  width:140px;
+  font-size:12px;
+  color: var(--color-text-secondary);
+}
+
+.field-col{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+input, select, textarea{
+  background: var(--color-panel-2);
+  border:1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  padding:6px 8px;
+  font-size:12px;
+  outline:none;
+  transition: var(--transition);
+}
+
+input:focus, select:focus{
+  border-color: var(--color-accent);
+}
+
+/* Sections */
+.section-label{
+  font-size:12px;
+  margin:10px 0 6px;
+  color: var(--color-text-secondary);
+}
+
+/* Ingredients */
+.ing-block{
+  border:1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  padding:8px;
+  margin-bottom:6px;
+  background: var(--color-panel-2);
+}
+
+.ing-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+  font-size:12px;
+}
+
+.ing-fields{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+}
+
+.ing-field{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.rm-btn{
+  background:none;
+  border:none;
+  color: var(--color-danger);
+  cursor:pointer;
+}
+
+/* Output */
+#output{
+  flex:1;
+  resize:none;
+  font-family: monospace;
+  font-size:12px;
+  line-height:1.4;
+}
+
+/* Buttons */
+button{
+  background: var(--color-panel-2);
+  border:1px solid var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  padding:4px 8px;
+  cursor:pointer;
+  transition: var(--transition);
+}
+
+button:hover{
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}
+
+/* Misc */
+.hint{
+  font-size:11px;
+  color: var(--color-text-tertiary);
+}
+
+.empty-state{
+  text-align:center;
+  font-size:12px;
+  color: var(--color-text-tertiary);
+  padding:20px;
+}
 </style>
+
 
 <h2 class="sr-only">RPG Maker Recipe Helper — crea y exporta recetas de crafting</h2>
 <div id="app">
